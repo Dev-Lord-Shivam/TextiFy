@@ -5,30 +5,30 @@ import { BsCheck2All } from 'react-icons/bs'
 import { useNavigate } from 'react-router-dom';
 import { conversationsAtom, selectedConversationAtom } from '../atom/messageAtom.js';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import useShowToast from '../CostomHooks/useShowToast.js';
 import { contactAtom } from '../atom/contactAtom.js';
 import { useSocket } from '../context/SocketContext.jsx';
 import userAtom from '../atom/userAtom.js';
+import AlertSound from '../assets/sound/NewNotification.mp3'
 
-const ContactList = ({ isOnline, contact }) => {
+const ContactList = ({ isOnline, contact, lastMessageObject }) => {
   const { colorMode } = useColorMode();
   const [conversations, setConversation] = useRecoilState(conversationsAtom);
   const [selectedConversation, setSelectedConversation] = useRecoilState(selectedConversationAtom)
-  const [lastMessage, setLastMessage] = useState('');
   const contacts = useRecoilValue(contactAtom)
-  const showToast = useShowToast();
   const navigate = useNavigate();
   const { socket } = useSocket();
   const currentUser = useRecoilValue(userAtom);
   const [newMsg, setNewMsg] = useState(false);
   const [sender,setSender] = useState(true)
+  const [msgSeen,setMsgSeen] = useState(true)
 
   useEffect(() => {
     if (socket) {
       socket.on("newMessage", (message) => {
         if (message.sender === contact._id) {
           setNewMsg(true);
-          console.log('inside set new msg')
+          const AlertMsgSound = new Audio(AlertSound);
+          AlertMsgSound.play();
         }
       })
     }
@@ -40,34 +40,18 @@ const ContactList = ({ isOnline, contact }) => {
   })
 
   useEffect(() => {
-    const setConvToRecoil = async () => {
-      try {
-        const res = await fetch('/api/message/conversations')
-        const data = await res.json();
-        if (data.error) {
-          showToast("Error", data.error, "error");
-          return;
-        }
-        setConversation(data);
-       
-        let result = data.find(conv => conv.participants[0]._id === contact._id);
-        if (result) {
-          setLastMessage(result.lastMessage.text)
-          if(result.lastMessage.sender !== currentUser._id){
-            setNewMsg(!result.lastMessage.seen)
-            setSender(false)
-          }
-        }
-        else{
-          setLastMessage('')
-          setSender(false)
-        }
-      } catch (error) {
-        showToast("Error", error.message, "error");
+      if(!lastMessageObject){
+        setSender(false)
       }
-    };
-    setConvToRecoil();
-  }, [showToast, setConversation]);
+      else if(lastMessageObject && lastMessageObject?.sender !== currentUser._id){
+        
+        setNewMsg(!lastMessageObject?.seen)
+        setSender(false)
+      } 
+      else{
+        setMsgSeen(lastMessageObject?.seen)
+      }   
+  },[setMsgSeen,setSender,setNewMsg])
 
   const handleClick = async (e) => {
     e.preventDefault();
@@ -123,14 +107,14 @@ const ContactList = ({ isOnline, contact }) => {
         </Text>
         <Text fontSize={"sm"} gap={1} display={"flex"} alignItems={"center"}>
           {sender && 
-          <Box color={!newMsg ? "blue.400" : ""}>
+          <Box color={msgSeen ? "blue.400" : ""}>
             <BsCheck2All size={16}  />
           </Box>
           }
-          {lastMessage.length > 30 ? lastMessage.substring(0, 18) + '...' : lastMessage}
+          {lastMessageObject?.text.length > 30 ? lastMessageObject?.text.substring(0, 18) + '...' : lastMessageObject?.text}
         </Text>
       </Stack>
-      {newMsg &&
+      {newMsg && 
         <Box border="2px solid" borderColor="greenyellow" borderRadius="md" w={10} ml="auto">
           <Text fontSize={"sm"} textAlign={"center"} color={'greenyellow'}>
             new

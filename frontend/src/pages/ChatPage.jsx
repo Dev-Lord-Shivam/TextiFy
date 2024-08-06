@@ -1,6 +1,6 @@
 import {
     Flex, WrapItem, Avatar, Text, Menu, MenuButton, MenuList, MenuItem, Button, useColorModeValue,
-    Input, InputGroup, InputRightElement, SkeletonCircle, Skeleton, Image, Spinner,useDisclosure,
+    Input, InputGroup, InputRightElement, SkeletonCircle, Skeleton, Image, Spinner, useDisclosure,
     useColorMode, ModalHeader, Modal, ModalBody, ModalCloseButton, ModalContent, ModalOverlay,
 } from '@chakra-ui/react'
 import { React, useState, useRef, useEffect } from 'react'
@@ -16,6 +16,8 @@ import { useRecoilState, useRecoilValue } from 'recoil';
 import userAtom from '../atom/userAtom.js';
 import { useSocket } from '../context/SocketContext.jsx';
 import { conversationsAtom, selectedConversationAtom } from '../atom/messageAtom.js';
+import SendAlert from '../assets/sound/NewSendMessage.mp3';
+import ReceiveAlert from '../assets/sound/NewReceiveMessage.mp3';
 
 
 const ChatPage = () => {
@@ -33,7 +35,7 @@ const ChatPage = () => {
     const selectedConversation = useRecoilValue(selectedConversationAtom)
     const [selectedConversationState, setSelectedConversation] = useRecoilState(selectedConversationAtom)
     const messageEndRef = useRef(null)
-    const colorMode = useColorMode();
+    const colorMode = useColorModeValue();
     const { onlineUsers } = useSocket();
     const { onClose } = useDisclosure()
     const navigate = useNavigate()
@@ -63,6 +65,8 @@ const ChatPage = () => {
 
             if (selectedConversation._id === message.conversationId) {
                 setMessages((prevMessages) => [...prevMessages, message]);
+                const ReceiveNewMsg = new Audio(ReceiveAlert);
+                ReceiveNewMsg.play();
             }
             else {
                 try {
@@ -206,6 +210,8 @@ const ChatPage = () => {
             setMessages((messages) => [...messages, data]);
             setMessageText("");
             setImgUrl("")
+            const SendAlertSound = new Audio(SendAlert);
+            SendAlertSound.play();
         } catch (error) {
             showToast("Error", error.message, "error")
         } finally {
@@ -213,23 +219,23 @@ const ChatPage = () => {
         }
         //console.log(messages)
     }
-    const handleRemoveContact = async() => {
+    const handleRemoveContact = async () => {
         try {
             const res = await fetch(`/api/users/follow/${selectedConversation.userId}`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-			});
-			const data = await res.json();
-			if (data.error) {
-				showToast("Error", data.error, "error");
-				return;
-			}
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+            const data = await res.json();
+            if (data.error) {
+                showToast("Error", data.error, "error");
+                return;
+            }
             navigate('/')
         } catch (error) {
             showToast("Error", error.message, "error");
-			return;
+            return;
         }
     }
 
@@ -326,10 +332,12 @@ const ChatPage = () => {
                         placeholder='Type a message'
                         onChange={(e) => setMessageText(e.target.value)}
                         value={messageText}
-                        borderColor={(colorMode === "light" ? "dark" : "white")}
+                        borderColor={useColorModeValue('black', 'white')}
                     />
-                    <InputRightElement onClick={handleSendMessage} cursor={"pointer"}>
-                        <IoSendSharp color="green.500" />
+                    <InputRightElement>
+                        <Button type="submit" variant="unstyled" cursor="pointer">
+                            <IoSendSharp />
+                        </Button>
                     </InputRightElement>
                 </InputGroup>
             </form>

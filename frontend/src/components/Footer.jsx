@@ -5,71 +5,74 @@ import { MdNotificationAdd } from "react-icons/md";
 import { FaSearch } from "react-icons/fa";
 import { CgProfile } from "react-icons/cg";
 import { IoIosNotifications } from "react-icons/io";
-import { Link as RouterLink } from 'react-router-dom'
+import { NavLink } from 'react-router-dom';
 import { useSocket } from '../context/SocketContext';
 import userAtom from '../atom/userAtom';
 import { useRecoilValue } from 'recoil';
 import useShowToast from '../CostomHooks/useShowToast';
+import AlertSound from '../assets/sound/NewNotification.mp3'
 
 const Footer = () => {
   const { socket } = useSocket();
-  const [notification, setNotification] = useState(<IoIosNotifications fontSize={24} />)
-  //const [alert, setAlert] = useState(true)
-  const currentUser = useRecoilValue(userAtom)
+  const [notification, setNotification] = useState(<IoIosNotifications fontSize={24} />);
+  const currentUser = useRecoilValue(userAtom);
   const showToast = useShowToast();
 
   useEffect(() => {
     if (socket) {
       socket.on("newNotification", (message) => {
         if (message === currentUser._id) {
-          setNotification(<MdNotificationAdd fontSize={24} color='red' onClick={markNotificationAsSeen} />)
+          setNotification(<MdNotificationAdd fontSize={24} color='red' onClick={markNotificationAsSeen} />);
+          const sound = new Audio(AlertSound);
+          sound.play();
         }
-      })
+      });
     }
     return () => {
       if (socket) {
-        socket.off("newMessage")
+        socket.off("newMessage");
       }
-    }
-  }, [socket, setNotification])
+    };
+  }, [socket, setNotification]);
 
   useEffect(() => {
     const getNotificationAlert = async () => {
       try {
-        const res = await fetch(`/api/users/notificationAlert`)
-        const data = await res.json()
-        if(data.length === 0){
+        const res = await fetch(`/api/users/notificationAlert`);
+        const data = await res.json();
+        if (data.length === 0) {
           return;
         }
         if (data.error) {
-          showToast('Error', data.error, 'error')
-          return
+          showToast('Error', data.error, 'error');
+          return;
         }
-        if(!data[0].seen){
-          setNotification(<MdNotificationAdd fontSize={24} color='red' onClick={markNotificationAsSeen}/>)
+        if (!data[0].seen) {
+          setNotification(<MdNotificationAdd fontSize={24} color='red' onClick={markNotificationAsSeen} />);
         }
       } catch (error) {
-        showToast('Error', error.message, 'error')
-        console.log(error.message)
+        showToast('Error', error.message, 'error');
+        console.log(error.message);
       }
-    }
+    };
     getNotificationAlert();
-  },[showToast,setNotification])
+  }, [showToast, setNotification]);
 
-  const markNotificationAsSeen = async() => {
+  const markNotificationAsSeen = async () => {
     try {
-        const res = await fetch('/api/users/marknotificationseen')
-        const data = await res.json()
-        if (data.error) {
-          showToast('Error', data.error, 'error')
-          return
-        }
-        setNotification(<IoIosNotifications fontSize={24} />)
+      const res = await fetch('/api/users/marknotificationseen');
+      const data = await res.json();
+      if (data.error) {
+        showToast('Error', data.error, 'error');
+        return;
+      }
+      setNotification(<IoIosNotifications fontSize={24} />);
     } catch (error) {
-       showToast('Error', error.message, 'error')
-       console.log(error.message)
+      showToast('Error', error.message, 'error');
+      console.log(error.message);
     }
-  }
+  };
+
   return (
     <Flex
       position={'fixed'}
@@ -82,27 +85,27 @@ const Footer = () => {
       zIndex={1} // Ensure it stays above other content
     >
       <Flex flexDirection='column' gap={1} alignItems='center'>
-        <Link as={RouterLink} to='/'>
+        <NavLink to='/' activeClassName='active'>
           <MdOutlineChat fontSize={24} />
-        </Link>
+        </NavLink>
         <Text fontSize={12}>Chats</Text>
       </Flex>
       <Flex flexDirection='column' gap={1} alignItems='center'>
-        <Link as={RouterLink} to='/find'>
+        <NavLink to='/find' activeClassName='active'>
           <FaSearch fontSize={24} />
-        </Link>
+        </NavLink>
         <Text fontSize={12}>Search</Text>
       </Flex>
       <Flex flexDirection='column' gap={1} alignItems='center'>
-        <Link as={RouterLink} to='/profile'>
+        <NavLink to='/profile' activeClassName='active'>
           <CgProfile fontSize={24} />
-        </Link>
+        </NavLink>
         <Text fontSize={12}>Profile</Text>
       </Flex>
       <Flex flexDirection='column' gap={1} alignItems='center'>
-        <Link as={RouterLink} to='/update'>
+        <NavLink to='/update' activeClassName='active'>
           {notification}
-        </Link>
+        </NavLink>
         <Text fontSize={12}>Update</Text>
       </Flex>
     </Flex>

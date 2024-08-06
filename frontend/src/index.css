@@ -18,6 +18,13 @@
     background-color: #888;
 }
 
+.active {
+  color: #f35626; /* or any other color/style you want for the active link */
+  background-image: -webkit-linear-gradient(92deg, #f35626, #feab3a);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	-webkit-animation: hue 5s infinite linear;
+}
 
 .gradient-text {
 	font-family: Helvetica Neue, Helvetica, Arial, sans-serif;

@@ -6,6 +6,7 @@ import useShowToast from '../CostomHooks/useShowToast.js'
 import { useSocket } from '../context/SocketContext.jsx'
 import { contactAtom } from '../atom/contactAtom.js'
 import { useRecoilState } from 'recoil'
+import { conversationsAtom } from '../atom/messageAtom.js'
 
 const HomePage = () => {
 
@@ -15,6 +16,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true)
   const showToast = useShowToast()
   const {socket,onlineUsers} = useSocket()
+  const [conversations, setConversation] = useRecoilState(conversationsAtom);
 
   useEffect(() => {
     setLoading(true)
@@ -36,6 +38,36 @@ const HomePage = () => {
     }
     getContacts();
   }, [showToast])
+
+  useEffect(() => {
+    const setConvToRecoil = async () => {
+      try {
+        const res = await fetch('/api/message/conversations')
+        const data = await res.json();
+        if (data.error) {
+          showToast("Error", data.error, "error");
+          return;
+        }
+        setConversation(data);
+       
+        // let result = data.find(conv => conv.participants[0]._id === contact._id);
+        // if (result) {
+        //   setLastMessage(result.lastMessage.text)
+        //   if(result.lastMessage.sender !== currentUser._id){
+        //    // setNewMsg(!result.lastMessage.seen)
+        //    // setSender(false)
+        //   }
+        // }
+        // else{
+        //   setLastMessage('')
+        //   setSender(false)
+        // }
+      } catch (error) {
+        showToast("Error", error.message, "error");
+      }
+    };
+    setConvToRecoil();
+  }, [showToast, setConversation]);
 
   const handleSearchForContacts = (e) => {
     const value = e.target.value;
@@ -85,6 +117,7 @@ const HomePage = () => {
             key={contact._id}
             isOnline={onlineUsers.includes(contact._id)}
             contact={contact}
+            lastMessageObject = {conversations.find(conv => conv.participants[0]._id === contact._id)?.lastMessage}
           />
           
         ))}
@@ -94,6 +127,7 @@ const HomePage = () => {
             key={contact._id}
             isOnline={onlineUsers.includes(contact._id)}
             contact={contact}
+            lastMessageObject = {conversations.find(conv => conv.participants[0]._id === contact._id)?.lastMessage}
           />
           
         ))}

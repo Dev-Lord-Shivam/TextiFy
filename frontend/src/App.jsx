@@ -20,11 +20,11 @@ function App() {
         <Routes>
           <Route path="/auth" element={!user ? <AuthPage /> : <Navigate to='/' />} />
           <Route path="/" element={user ? <HomePage /> : <Navigate to='/auth' />} />
-          <Route path='chat/:username' element={<ChatPage />} />
-          <Route path="/find" element={<FindPage />} />
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path="/update" element={<Notification />} />
-          <Route path="/setting" element={<Settings />} />
+          <Route path='chat/:username' element={user ? <ChatPage /> : <Navigate to='/auth' />} />
+          <Route path="/find" element={user ? <FindPage /> : <Navigate to='/auth' /> } />
+          <Route path="/profile" element={user ? <UserProfile /> : <Navigate to='/auth' />} />
+          <Route path="/update" element={user ? <Notification /> : <Navigate to='/auth' />} />
+          <Route path="/setting" element={user ? <Settings /> : <Navigate to='/auth' />} />
         </Routes>
        
       </Container>
