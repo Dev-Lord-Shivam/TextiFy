@@ -1,9 +1,14 @@
 import { useSetRecoilState } from "recoil"
 import userAtom from "../atom/userAtom"
 import useShowToast from "./useShowToast"
+import { contactAtom } from "../atom/contactAtom"
+import { conversationsAtom, selectedConversationAtom } from "../atom/messageAtom"
 
 const useLogout = () => {
     const setUser = useSetRecoilState(userAtom)
+    const setContact = useSetRecoilState(contactAtom)
+    const setConversation = useSetRecoilState(conversationsAtom)
+
     const showToast = useShowToast();
     const logout = async () => {
         try {
@@ -20,6 +25,8 @@ const useLogout = () => {
             }
             localStorage.removeItem('TextiFy');
             setUser(null);
+            setContact([]);
+            setConversation([]);
         } catch (error) {
             console.log(error)
         }
